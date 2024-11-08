@@ -1,0 +1,69 @@
+{
+    "_id" : ObjectId("6718d9cffd84a5a8c8e130f1"),
+    "First_Name" : "Ervin",
+    "Last_Name" : "Howell",
+    "Start_Work_Year" : NumberInt(2005),
+    "DepartmentID" : ObjectId("671a2f64cf80eb6ed99c1f66"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee"),
+        ObjectId("6713dbb6a6a1ff00b2c54ffa"),
+        ObjectId("671a547bcf80eb6ed99c1f6f"),
+        ObjectId("671aaf4f231ed82aeb22fa87")
+    ]
+}
+{
+    "_id" : ObjectId("6718da06fd84a5a8c8e130f3"),
+    "First_Name" : "Leanne",
+    "Last_Name" : "Graham",
+    "Start_Work_Year" : NumberInt(2000),
+    "DepartmentID" : ObjectId("671a2923cf80eb6ed99c1f56"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee"),
+        ObjectId("6713dbb6a6a1ff00b2c54ffa")
+    ]
+}
+{
+    "_id" : ObjectId("671a2f14cf80eb6ed99c1f63"),
+    "First_Name" : "Nadav",
+    "Last_Name" : "Harel",
+    "Start_Work_Year" : NumberInt(2002),
+    "DepartmentID" : ObjectId("671a2f64cf80eb6ed99c1f66"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee"),
+        ObjectId("6713dbb6a6a1ff00b2c54ffa"),
+        ObjectId("671aaf4f231ed82aeb22fa87"),
+        ObjectId("671a547bcf80eb6ed99c1f6f")
+    ]
+}
+{
+    "_id" : ObjectId("671a459ff4f16c106e6de795"),
+    "First_Name" : "niv",
+    "Last_Name" : "yon",
+    "Start_Work_Year" : NumberInt(2005),
+    "DepartmentID" : ObjectId("671a2923cf80eb6ed99c1f56"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee")
+    ]
+}
+{
+    "_id" : ObjectId("671bda7a1572b9df51df9882"),
+    "First_Name" : "niv",
+    "Last_Name" : "ron",
+    "Start_Work_Year" : NumberInt(2000),
+    "DepartmentID" : ObjectId("671a2f64cf80eb6ed99c1f66"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee")
+    ]
+}
+{
+    "_id" : ObjectId("672dd7fc5ccc2162bc8dcade"),
+    "First_Name" : "aaa",
+    "Last_Name" : "aaa",
+    "Start_Work_Year" : NumberInt(1595),
+    "DepartmentID" : ObjectId("671a2923cf80eb6ed99c1f56"),
+    "Shifts" : [
+        ObjectId("6713db38a6a1ff00b2c54fee"),
+        ObjectId("6713dbb6a6a1ff00b2c54ffa"),
+        ObjectId("671a547bcf80eb6ed99c1f6f")
+    ]
+}

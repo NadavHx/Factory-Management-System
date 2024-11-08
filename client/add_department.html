@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Department</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+
+    <h1>Add New Department</h1>
+    
+    <!-- Welcome message -->
+    <div id="welcomeMessage"></div>
+
+    <!-- Form to add new department -->
+    <form id="newDepartmentForm">
+        <label for="departmentName">Department Name:</label>
+        <input type="text" id="departmentName" required><br>
+
+        <label for="manager">Manager:</label>
+        <select id="manager">
+            <option value="">No Manager</option>
+            <!-- Dynamic employee options will be loaded here -->
+        </select><br>
+
+        <button type="button" id="saveBtn">Save</button>
+        <button type="button" id="cancelBtn">Cancel</button>
+    </form>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+        
+        if (!token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        }
+
+        // Load employees to the dropdown for selecting a manager
+        async function loadEmployees() {
+            try {
+                const response = await fetch(`http://localhost:8081/employee`, {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch employees");
+                }
+                const employees = await response.json();
+                const managerDropdown = document.getElementById('manager');
+                employees.forEach(employee => {
+                    const option = document.createElement('option');
+                    option.value = employee._id;
+                    option.textContent = `${employee.First_Name} ${employee.Last_Name}`;
+                    managerDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading employees:", error);
+            }
+        }
+
+        // Save new department
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const departmentName = document.getElementById('departmentName').value;
+            const managerId = document.getElementById('manager').value || null;
+
+            if (!departmentName) {
+                alert("Please enter a department name.");
+                return;
+            }
+
+            const newDepartment = {
+                Name: departmentName,
+                Manager: managerId // Optional
+            };
+
+            try {
+                const response = await fetch('http://localhost:8081/department', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(newDepartment)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to save department");
+                }
+
+                alert("Department saved successfully!");
+            } catch (error) {
+                console.error("Error saving department:", error);
+                alert("Failed to save department");
+            }
+        });
+
+        // Cancel and go back to departments page
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = './department_page.html'; // Redirect to departments page
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear(); // Clear the session storage
+            window.location.href = './login.html'; // Redirect to login page
+        });
+
+        // Welcome message
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        // Load employees for manager dropdown
+        loadEmployees();
+    </script>
+</body>
+</html>

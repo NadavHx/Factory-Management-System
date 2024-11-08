@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Shift</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+    <h1>Create New Shift</h1>
+    <div id="welcomeMessage"></div>
+    <!-- Dropdown to select existing shifts for editing -->
+    <h2>Edit Existing Shift</h2>
+    <label for="existingShiftSelect">Select Shift:</label>
+    <select id="existingShiftSelect">
+        <option value="">-- Select a shift to edit --</option>
+    </select>
+
+    <form id="newShiftForm">
+        <label for="newShiftDate">Shift Date:</label>
+        <input type="date" id="newShiftDate" required><br>
+
+        <label for="newStartingHour">Starting Hour:</label>
+        <input type="number" id="newStartingHour" min="0" max="23" required><br>
+
+        <label for="newEndingHour">Ending Hour:</label>
+        <input type="number" id="newEndingHour" min="0" max="23" required><br>
+
+        <button type="button" id="createShiftBtn">Create Shift</button>
+        <button type="button" id="updateShiftBtn" style="display:none;">Update Shift</button> <!-- Hidden update button -->
+    </form>
+    <h1>Assign Employee to Shift</h1>
+    <div>
+        <label for="assignShiftSelect">Select Shift:</label>
+        <select id="assignShiftSelect">
+            <option value="">-- Select a shift --</option>
+        </select>
+        <label for="employeeSelect">Select Employee to Add:</label>
+        <select id="employeeSelect">
+            <option value="">-- Select an employee --</option>
+        </select>
+
+        <button id="assignEmployeeBtn">Assign Employee</button>
+    </div>
+    <h2>Existing Shifts</h2>
+    <table id="existingShiftsTable">
+        <thead>
+            <tr>
+                <th>Shift Date</th>
+                <th>Starting Hour</th>
+                <th>Ending Hour</th>
+                <th>Employees</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+
+        if (!token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        }
+
+        let selectedShiftId = null; // Variable to store the selected shift ID
+
+        // Load existing shifts on page load
+        async function loadExistingShifts() {
+            try {
+                const response = await fetch('http://localhost:8081/shift/category/shiftPage', {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch existing shifts");
+                }
+                const shifts = await response.json();
+                populateShiftsTable(shifts);
+                populateShiftSelect(shifts,document.getElementById('existingShiftSelect')); // Populate the dropdown for editing
+                populateShiftSelect(shifts,document.getElementById('assignShiftSelect'));
+               // populateAssignShiftSelect(shifts)assignEmployeeBtn
+            } catch (error) {
+                console.error("Error loading existing shifts:", error);
+            }
+        }
+
+        function populateShiftsTable(shifts) {
+            const tableBody = document.querySelector("#existingShiftsTable tbody");
+            tableBody.innerHTML = ""; // Clear previous data
+            shifts.forEach(shift => {
+                const row = tableBody.insertRow();
+                const dateCell = row.insertCell();
+                const startCell = row.insertCell();
+                const endCell = row.insertCell();
+                const employeesCell = row.insertCell();
+                dateCell.textContent = new Date(shift.Date_time).toLocaleDateString(); // Format date
+                startCell.textContent = shift.Starting_Hour;
+                endCell.textContent = shift.Ending_Hour;
+                // Display assigned employees (assuming employees are included in the shift object)
+                const employeeNames = shift.Employees.map(employee => `${employee.First_Name} ${employee.Last_Name}`).join(", ") || "None";
+                employeesCell.textContent = employeeNames; // Display names or "None" if no employees assigned
+            });
+        }
+
+        function populateShiftSelect(shifts,elemnt) {
+            const shiftSelect =elemnt ;
+            shiftSelect.innerHTML = ""; // Clear previous options
+
+            // Add default option
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "-- Select a shift to edit --";
+            shiftSelect.appendChild(defaultOption);
+
+            // Add options for each shift
+            shifts.forEach(shift => {
+                const option = document.createElement("option");
+                option.value = shift.id; // Assuming shift.id contains the unique identifier
+                option.textContent = `${new Date(shift.Date_time).toLocaleDateString()} - ${shift.Starting_Hour} to ${shift.Ending_Hour}`;
+                shiftSelect.appendChild(option);
+            });
+        }
+
+        const populateEmployeeSelect = async (shiftId) => {
+            const shiftSelect =document.getElementById('employeeSelect') ;
+            employeeSelect.innerHTML = ""; // Clear previous options
+            if (shiftId) {
+                const response = await fetch(`http://localhost:8081/shift/getNotShiftedEmployeebyid/${shiftId}`, {
+                    headers: { 'x-access-token': token }
+                });
+                let  employees;
+                if (response.ok) {
+                    employees = await response.json();
+                    
+                } else {
+                    alert("Failed to load shift details");
+                    return;
+                }
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = "-- Select a employee to edit --";
+                employeeSelect.appendChild(defaultOption);
+                // Add options for each employee
+                employees.forEach(employee => {
+                    const option = document.createElement("option");
+                    option.value = employee._id; // Assuming shift.id contains the unique identifier
+                    option.textContent = `${employee.First_Name} ${employee.Last_Name}`;
+                    employeeSelect.appendChild(option);
+                });
+            }
+
+        }
+
+  //      
+        // Event listener for selecting a shift to edit
+        document.getElementById('existingShiftSelect').addEventListener('change', async (event) => {
+            const shiftId = event.target.value;
+            if (shiftId) {
+                const response = await fetch(`http://localhost:8081/shift/${shiftId}`, {
+                    headers: { 'x-access-token': token }
+                });
+
+                if (response.ok) {
+                    const shift = await response.json();
+                    editShift(shift);
+                } else {
+                    alert("Failed to load shift details");
+                }
+            } else {
+                // Reset form if no shift is selected
+                resetForm();
+            }
+        });
+
+        function editShift(shift) {
+            selectedShiftId = shift._id; // Store the selected shift ID
+            document.getElementById('newShiftDate').value = new Date(shift.Date_time).toISOString().split('T')[0]; // Set date
+            document.getElementById('newStartingHour').value = shift.Starting_Hour; // Set starting hour
+            document.getElementById('newEndingHour').value = shift.Ending_Hour; // Set ending hour
+
+            // Show update button and hide create button
+            document.getElementById('createShiftBtn').style.display = 'none';
+            document.getElementById('updateShiftBtn').style.display = 'block';
+        }
+
+        // Reset form fields and buttons
+        function resetForm() {
+            selectedShiftId = null; // Clear selected shift ID
+            document.getElementById('newShiftForm').reset(); // Reset form fields
+            document.getElementById('createShiftBtn').style.display = 'block'; // Show create button
+            document.getElementById('updateShiftBtn').style.display = 'none'; // Hide update button
+            document.getElementById('existingShiftSelect').value = ""; // Clear the select
+        }
+
+        // Create new shift
+        document.getElementById('createShiftBtn').addEventListener('click', async () => {
+            const shiftData = {
+                Date_time: document.getElementById('newShiftDate').value,
+                Starting_Hour: parseInt(document.getElementById('newStartingHour').value),
+                Ending_Hour: parseInt(document.getElementById('newEndingHour').value)
+            };
+
+            try {
+                const response = await fetch(`http://localhost:8081/shift`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(shiftData)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to create shift");
+                }
+
+                alert("New shift created successfully!");
+                resetForm(); // Reset form after successful submission
+                loadExistingShifts(); // Reload existing shifts to include the new shift
+            } catch (error) {
+                console.error("Error creating shift:", error);
+                alert("Failed to create new shift");
+            }
+        });
+
+        // Update existing shift
+        document.getElementById('updateShiftBtn').addEventListener('click', async () => {
+            const shiftData = {
+                Date_time: document.getElementById('newShiftDate').value,
+                Starting_Hour: parseInt(document.getElementById('newStartingHour').value),
+                Ending_Hour: parseInt(document.getElementById('newEndingHour').value)
+            };
+
+            try {
+                const response = await fetch(`http://localhost:8081/shift/${selectedShiftId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(shiftData)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to update shift");
+                }
+
+                alert("Shift updated successfully!");
+                resetForm(); // Reset form after successful submission
+                loadExistingShifts(); // Reload existing shifts to include the updated shift
+            } catch (error) {
+                console.error("Error updating shift:", error);
+                alert("Failed to update shift");
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear(); // Clear the session storage
+            window.location.href = './login.html'; // Redirect to login page
+        });
+
+        document.getElementById('assignEmployeeBtn').addEventListener('click', async() => {
+            const shiftData = {
+                Shifts: document.getElementById('assignShiftSelect').value
+            };
+            const selectedEmployeeId= document.getElementById('employeeSelect').value;
+            try {
+                const response = await fetch(`http://localhost:8081/shift/category/assign/${selectedEmployeeId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(shiftData)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to update shift");
+                }
+
+                alert("New shift created successfully!");
+                resetForm(); // Reset form after successful submission
+                loadExistingShifts(); // Reload existing shifts to include the new shift
+            } catch (error) {
+                console.error("Error creating shift:", error);
+                alert("Failed to create new shift");
+            }
+        });
+
+
+    
+
+
+        assignShiftSelect.addEventListener('change', (event) => {
+            populateEmployeeSelect(event.target.value);
+            });
+        // Load existing shifts on initial page load
+        
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        loadExistingShifts();
+    </script>
+</body>
+</html>

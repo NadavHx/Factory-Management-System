@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css"> 
+    <title>Employees Page</title>
+</head>
+<body>
+<button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+<h1>Employees Page</h1>
+
+<div id="welcomeMessage"></div>
+
+<button id="newEmployeeBtn">New Employee</button>
+<button id="logoutBtn">Logout</button>
+
+<label for="departmentFilter">Filter by Department:</label>
+<select id="departmentFilter">
+    <option value="all">All Departments</option>
+</select>
+
+<table id="employeesTable">
+    <thead>
+        <tr>
+            <th>FullName</th>
+            <th>Department</th>
+            <th>Shifts</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    
+    async function loadEmployees() {
+        const token = sessionStorage.token;
+        // Check if token exists in sessionStorage
+        if (!token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+            return;
+        }
+        try {
+            const url = 'http://localhost:8081/employee/category/employeePage';
+            const response  = await fetch(url, {
+                method: 'GET',
+                headers: { 'x-access-token': token },
+            });
+            // Check if the response is valid
+            if (!response.ok) {
+                alert("Session expired or unauthorized. Please log in again.");
+                sessionStorage.clear();  
+                window.location.href = './login.html'; 
+                return;
+            }
+            const employees = await response.json();
+            const tableBody = document.getElementById('employeesTable').getElementsByTagName('tbody')[0];
+            const departmentFilter = document.getElementById('departmentFilter');
+
+            // Load unique departments into the dropdown filter
+            const uniqueDepartments = [...new Set(employees.map(emp => emp.department.Name))];
+            uniqueDepartments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentFilter.appendChild(option);
+            });
+
+            // Function to render employees based on the selected filter
+            function renderEmployees(department = 'all') {
+                tableBody.innerHTML = ''; 
+                employees.forEach(employee => {
+                    if (department === 'all' || employee.department.Name === department) {
+                        const row = tableBody.insertRow();
+
+                        const employeeCell = row.insertCell();
+                        const employeeLink = document.createElement('a');
+                        employeeLink.onclick = () => sessionStorage.setItem('employeeId', employee.id);
+                        employeeLink.href = `./edit_employee.html`; 
+                        employeeLink.textContent = employee.First_Name + " " + employee.Last_Name;
+                        employeeCell.appendChild(employeeLink);
+
+                        const departmentCell = row.insertCell();
+                        const departmentLink = document.createElement('a');
+                        departmentLink.onclick = () => sessionStorage.setItem('departmentId', employee.department._id);
+                        departmentLink.textContent = employee.department.Name;
+                        departmentLink.href = `./edit_department.html`;
+                        departmentCell.appendChild(departmentLink);
+
+                        const shiftsCell = row.insertCell();
+                        shiftsCell.textContent = employee.Shifts.map(shift => {
+                            const date = new Date(shift.Date_time);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0'); 
+                            const day = String(date.getDate()).padStart(2, '0'); 
+                            const formattedDate = `${day}-${month}-${year}`;
+                            return `${formattedDate} shift between: ${shift.Starting_Hour}-${shift.Ending_Hour}`;
+                        }).join('    | ');
+                    }
+                });
+            }
+            
+            renderEmployees();
+            // Filter employees based on selected department
+            departmentFilter.addEventListener('change', (event) => {
+                renderEmployees(event.target.value);
+            });
+
+        } 
+        catch (error) {
+            console.error("Error in getting employees", error);
+            alert("An error occurred while fetching data.");
+        }
+    }
+    
+    
+    loadEmployees();
+    
+    // Display welcome message with the username
+    const userFullName = sessionStorage.getItem('userFullName');
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+
+    // Logout function that clears sessionStorage and redirects to the login page
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        sessionStorage.clear();  
+        window.location.href = './login.html';  // Redirect to the login page
+    });
+    // Redirect to add_employee page when the New Employee button is clicked
+    document.getElementById('newEmployeeBtn').addEventListener('click', () => {
+        window.location.href = './add_employee.html';  
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Main Navigation</h1>
+    <div id="welcomeMessage"></div>
+
+    <nav>
+        <button onclick="navigateTo('user_page.html')">User Page</button>
+        <button onclick="navigateTo('shift_page.html')">Shift Page</button>
+        <button onclick="navigateTo('employee_page.html')">Employee Page</button>
+        <button onclick="navigateTo('department_page.html')">Department Page</button>
+    </nav>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+
+        if (!token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        } else {
+            const userFullName = sessionStorage.getItem('userFullName');
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+        }
+
+        function navigateTo(page) {
+            window.location.href = `./${page}`;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+    </script>
+</body>
+</html>

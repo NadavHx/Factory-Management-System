@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Data</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+
+    <h1>Users Data</h1>
+    <div id="welcomeMessage"></div>
+
+    <button id="logoutBtn">Logout</button>
+
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Maximum Actions Allowed</th>
+                <th>Current Actions Allowed Today</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Load and display the welcome message with the username from sessionStorage
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        // Logout button functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+
+        // Load users data
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = sessionStorage.getItem('token');
+
+            if (!token) {
+                alert("Unauthorized. Please log in.");
+                window.location.href = './login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8081/user/userPage/users', {
+                    headers: { 'x-access-token': token }
+                });
+
+                if (!response.ok) {
+                    alert("Session expired or unauthorized. Please log in again.");
+                    sessionStorage.clear();
+                    window.location.href = './login.html';
+                    return;
+                }
+
+                const users = await response.json();
+                const tableBody = document.querySelector('#usersTable tbody');
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+
+                    const userNameCell = document.createElement('td');
+                    userNameCell.textContent = user.name;
+                    row.appendChild(userNameCell);
+
+                    const maxActionsCell = document.createElement('td');
+                    maxActionsCell.textContent = user.maxActions;
+                    row.appendChild(maxActionsCell);
+
+                    const currentActionsCell = document.createElement('td');
+                    currentActionsCell.textContent = user.actionsAllowed;
+                    row.appendChild(currentActionsCell);
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error loading users data:", error);
+                alert("An error occurred while fetching data.");
+            }
+        });
+    </script>
+</body>
+</html>

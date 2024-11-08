@@ -1,0 +1,50 @@
+{
+    "_id" : ObjectId("6713dac1a6a1ff00b2c54fe9"),
+    "full_Name" : "Leanne Graham",
+    "Num_Of_Actions" : NumberInt(1000)
+}
+{
+    "_id" : ObjectId("671b973bfe7d6f78f0eb6114"),
+    "full_Name" : "Ervin Howell",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9742fe7d6f78f0eb6115"),
+    "full_Name" : "Clementine Bauch",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9747fe7d6f78f0eb6116"),
+    "full_Name" : "Patricia Lebsack",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b974cfe7d6f78f0eb6117"),
+    "full_Name" : "Chelsey Dietrich",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9752fe7d6f78f0eb6118"),
+    "full_Name" : "Mrs. Dennis Schulist",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9757fe7d6f78f0eb6119"),
+    "full_Name" : "Kurtis Weissnat",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b975bfe7d6f78f0eb611a"),
+    "full_Name" : "Nicholas Runolfsdottir V",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9760fe7d6f78f0eb611b"),
+    "full_Name" : "Glenna Reichert",
+    "Num_Of_Actions" : NumberInt(5)
+}
+{
+    "_id" : ObjectId("671b9765fe7d6f78f0eb611c"),
+    "full_Name" : "Clementina DuBuque",
+    "Num_Of_Actions" : NumberInt(5)
+}

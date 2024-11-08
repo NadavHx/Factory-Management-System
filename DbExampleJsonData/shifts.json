@@ -1,0 +1,24 @@
+{
+    "_id" : ObjectId("6713db38a6a1ff00b2c54fee"),
+    "Date_time" : ISODate("2024-10-18T00:00:00.000+0000"),
+    "Starting_Hour" : NumberInt(8),
+    "Ending_Hour" : NumberInt(13)
+}
+{
+    "_id" : ObjectId("6713dbb6a6a1ff00b2c54ffa"),
+    "Date_time" : ISODate("2024-10-18T00:00:00.000+0000"),
+    "Starting_Hour" : NumberInt(12),
+    "Ending_Hour" : NumberInt(18)
+}
+{
+    "_id" : ObjectId("671a547bcf80eb6ed99c1f6f"),
+    "Date_time" : "10/22/2024",
+    "Starting_Hour" : NumberInt(10),
+    "Ending_Hour" : NumberInt(12)
+}
+{
+    "_id" : ObjectId("671aaf4f231ed82aeb22fa87"),
+    "Date_time" : ISODate("2024-10-24T00:00:00.000+0000"),
+    "Starting_Hour" : NumberInt(12),
+    "Ending_Hour" : NumberInt(14)
+}

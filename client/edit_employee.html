@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+    <h1>Edit Employee</h1>
+    
+    <div id="welcomeMessage"></div>
+
+    <form id="employeeForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" required><br>
+        
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" required><br>
+        
+        <label for="startWorkYear">Start Work Year:</label>
+        <input type="number" id="startWorkYear" required><br>
+
+        <label for="department">Department:</label>
+        <select id="department" required></select><br> 
+
+        <button type="button" id="updateBtn">Update</button>
+        <button type="button" id="deleteBtn">Delete</button>
+    </form>
+
+    <h2>Employee Shifts</h2>
+    <table id="shiftsTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Starting Hour</th>
+                <th>Ending Hour</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Register to an Existing Shift</h3>
+    <select id="existingShifts"></select>
+    <button type="button" id="assignShiftBtn">Assign Shift</button>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const employeeId = sessionStorage.getItem('employeeId');
+        const token = sessionStorage.getItem('token');
+
+        if (!employeeId || !token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        }
+
+        async function loadEmployeeData() {
+            try {
+                const response = await fetch(`http://localhost:8081/employee/${employeeId}`, {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch employee data");
+                }
+                const employee = await response.json();
+                document.getElementById('firstName').value = employee.First_Name;
+                document.getElementById('lastName').value = employee.Last_Name;
+                document.getElementById('startWorkYear').value = employee.Start_Work_Year;
+                document.getElementById('department').value = employee.DepartmentID; // עדכון הבחירה למחלקה
+
+                loadEmployeeShifts(employee.Shifts);
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        async function loadEmployeeShifts(shifts) {
+            const tableBody = document.querySelector("#shiftsTable tbody");
+            tableBody.innerHTML = "";
+            shifts.forEach(shift => {
+                const row = tableBody.insertRow();
+                const dateCell = row.insertCell();
+                const startCell = row.insertCell();
+                const endCell = row.insertCell();
+
+                const date = new Date(shift.Date_time);
+                dateCell.textContent = date.toLocaleDateString();
+                startCell.textContent = shift.Starting_Hour;
+                endCell.textContent = shift.Ending_Hour;
+            });
+        }
+
+        async function loadExistingShifts() {
+            try {
+                const response = await fetch(`http://localhost:8081/shift`, {
+                    headers: { 'x-access-token': token }
+                });
+                const shifts = await response.json();
+                const dropdown = document.getElementById('existingShifts');
+                shifts.forEach(shift => {
+                    const option = document.createElement('option');
+                    const date = new Date(shift.Date_time);
+                    option.value = shift._id;
+                    option.textContent = `${date.toLocaleDateString()} | ${shift.Starting_Hour} - ${shift.Ending_Hour}`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading shifts:", error);
+            }
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch('http://localhost:8081/department', {
+                    headers: { 'x-access-token': token }
+                });
+                const departments = await response.json();
+                const dropdown = document.getElementById('department');
+                dropdown.innerHTML = ""; // לנקות את הרשימה לפני הוספה חדשה
+                departments.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department._id; // ה-ID של המחלקה
+                    option.textContent = department.Name; // השם של המחלקה
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading departments:", error);
+            }
+        }
+
+        document.getElementById('updateBtn').addEventListener('click', async () => {
+            const updatedData = {
+                First_Name: document.getElementById('firstName').value,
+                Last_Name: document.getElementById('lastName').value,
+                Start_Work_Year: document.getElementById('startWorkYear').value,
+                DepartmentID: document.getElementById('department').value 
+            };
+            try {
+                const response = await fetch(`http://localhost:8081/employee/${employeeId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to update employee data");
+                }
+                alert("Employee updated successfully!");
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to update employee");
+            }
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+            if (confirm("Are you sure you want to delete this employee and all related data?")) {
+                try {
+                    const response = await fetch(`http://localhost:8081/employee/${employeeId}`, {
+                        method: 'DELETE',
+                        headers: { 'x-access-token': token }
+                    });
+                    if (!response.ok) {
+                        throw new Error("Failed to delete employee");
+                    }
+                    alert("Employee deleted successfully!");
+                    window.location.href = './employee_page.html';
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Failed to delete employee");
+                }
+            }
+        });
+
+        document.getElementById('assignShiftBtn').addEventListener('click', async () => {
+            const selectedShiftId = document.getElementById('existingShifts').value;
+            if (!selectedShiftId) {
+                alert("Please select a shift to assign");
+                return;
+            }
+            try {
+                const response = await fetch(`http://localhost:8081/employee/${employeeId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify({ Shifts: selectedShiftId })
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to assign shift");
+                }
+                alert("Shift assigned successfully!");
+                loadEmployeeData();
+            } catch (error) {
+                console.error("Error assigning shift:", error);
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+
+        // Welcome message
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        loadEmployeeData();
+        loadExistingShifts();
+        loadDepartments(); 
+    </script>
+</body>
+</html>

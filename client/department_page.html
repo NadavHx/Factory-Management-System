@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+    <h1>Departments</h1>
+    
+    <!-- Welcome message -->
+    <div id="welcomeMessage"></div>
+
+    <button id="newDepartmentBtn">New Department</button>
+
+    <!-- Table of departments -->
+    <table id="departmentsTable">
+        <thead>
+            <tr>
+                <th>Department Name</th>
+                <th>Manager</th>
+                <th>Employees</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+
+        if (!token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch('http://localhost:8081/department/category/departmenPage', {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch departments");
+                }
+                const departments = await response.json();
+                populateDepartmentsTable(departments);
+            } catch (error) {
+                console.error("Error loading departments:", error);
+            }
+        }
+
+        function populateDepartmentsTable(departments) {
+            const tableBody = document.querySelector("#departmentsTable tbody");
+            tableBody.innerHTML = ""; // Clear previous data
+
+            departments.forEach(department => {
+                const row = tableBody.insertRow();
+                const departmentNameCell = row.insertCell();
+                const managerCell = row.insertCell();
+                const employeesCell = row.insertCell();
+
+                // Create link for department name
+         
+                const departmentLink = document.createElement('a');
+                departmentLink.href = `./edit_department.html`;
+                departmentLink.onclick = () => sessionStorage.setItem('departmentId', department.id);
+                departmentLink.textContent = department.Name;
+                departmentNameCell.appendChild(departmentLink);
+
+                // Display manager name
+                managerCell.textContent = department.Manager ? department.Manager.First_Name + ' ' + department.Manager.Last_Name : "No Manager";
+
+                // Display employee names as links
+                const employeeLinks = department.Employees.map(employee => {
+                    const employeeLink = document.createElement('a');
+                    employeeLink.href = `./edit_employee.html`;
+                    employeeLink.onclick = () => sessionStorage.setItem('employeeId', employee._id);
+                    employeeLink.textContent = `${employee.First_Name} ${employee.Last_Name}`;
+                    employeeLink.style.display = 'block'; // Stack employee names
+                    return employeeLink;
+                });
+
+                employeeLinks.forEach(link => employeesCell.appendChild(link));
+            });
+        }
+
+        document.getElementById('newDepartmentBtn').addEventListener('click', () => {
+            window.location.href = './add_department.html'; // Redirect to add department page
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+
+        // Welcome message
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        loadDepartments(); // Load departments data on page load
+    </script>
+</body>
+</html>

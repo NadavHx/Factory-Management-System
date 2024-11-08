@@ -1,0 +1,21 @@
+
+{
+    "_id" : ObjectId("671a2923cf80eb6ed99c1f56"),
+    "Name" : "SteelForge",
+    "Manager" : ObjectId("671a459ff4f16c106e6de795")
+}
+{
+    "_id" : ObjectId("671a2f64cf80eb6ed99c1f66"),
+    "Name" : "Tel_Aviv_Factory",
+    "Manager" : ObjectId("6718da06fd84a5a8c8e130f3")
+}
+{
+    "_id" : ObjectId("671a8df92642b7cf3b09601c"),
+    "Name" : "check2",
+    "Manager" : ObjectId("671a2f14cf80eb6ed99c1f63")
+}
+{
+    "_id" : ObjectId("672ddc2c7c420041d03d8999"),
+    "Name" : "assadas",
+    "Manager" : ObjectId("671bda7a1572b9df51df9882")
+}

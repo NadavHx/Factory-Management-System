@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial="1.0">
+    <title>Edit Department</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button onclick="window.location.href='./navigation_page.html'">Main Navigation</button>
+    <h1>Edit Department</h1>
+    <div id="welcomeMessage"></div>
+
+    <form id="departmentForm">
+        <label for="departmentName">Department Name:</label>
+        <input type="text" id="departmentName" required><br>
+        
+        <label for="managerSelect">Manager:</label>
+        <select id="managerSelect"></select><br>
+
+        <button type="button" id="updateBtn">Update</button>
+        <button type="button" id="deleteBtn">Delete</button>
+    </form>
+
+    <!-- Dropdown to add employees -->
+    <h2>Add Employee to Department</h2>
+    <select id="availableEmployees"></select>
+    <button type="button" id="addEmployeeBtn">Add</button>
+
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        const departmentId = sessionStorage.getItem('departmentId');
+        const token = sessionStorage.getItem('token');
+
+        if (!departmentId || !token) {
+            alert("Unauthorized. Please log in.");
+            window.location.href = './login.html';
+        }
+
+        async function loadDepartmentData() {
+            try {
+                const response = await fetch(`http://localhost:8081/department/${departmentId}`, {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch department data");
+                }
+                const department = await response.json();
+                document.getElementById('departmentName').value = department.Name;
+
+                // Set the current manager as the default selected option
+                loadManagers(department.Manager._id);
+                loadAvailableEmployees(); // Load employees not in this department
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        async function loadManagers(currentManagerId) {
+            try {
+                const response = await fetch('http://localhost:8081/employee', {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch employees");
+                }
+                const employees = await response.json();
+                const managerSelect = document.getElementById('managerSelect');
+                managerSelect.innerHTML = ""; // Clear existing options
+
+                employees.forEach(employee => {
+                    const option = document.createElement('option');
+                    option.value = employee._id;
+                    option.textContent = `${employee.First_Name} ${employee.Last_Name}`;
+                    managerSelect.appendChild(option);
+                });
+
+                // Set the current manager as selected
+                managerSelect.value = currentManagerId;
+            } catch (error) {
+                console.error("Error loading managers:", error);
+            }
+        }
+
+        async function loadAvailableEmployees() {
+            try {
+                const response = await fetch('http://localhost:8081/employee', {
+                    headers: { 'x-access-token': token }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch employees");
+                }
+                const employees = await response.json();
+                const dropdown = document.getElementById('availableEmployees');
+                dropdown.innerHTML = ""; // Clear existing options
+
+                employees.forEach(employee => {
+                    // Only add employees not in the current department
+                    if (employee.DepartmentID!=departmentId) {
+                        const option = document.createElement('option');
+                        option.value = employee._id;
+                        option.textContent = `${employee.First_Name} ${employee.Last_Name}`;
+                        dropdown.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading employees:", error);
+            }
+        }
+
+        document.getElementById('updateBtn').addEventListener('click', async () => {
+            const updatedData = {
+                Name: document.getElementById('departmentName').value,
+                Manager: document.getElementById('managerSelect').value // Send the selected manager ID
+            };
+            try {
+                const response = await fetch(`http://localhost:8081/department/${departmentId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to update department data");
+                }
+                alert("Department updated successfully!");
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to update department");
+            }
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+            if (confirm("Are you sure you want to delete this department and all related data?")) {
+                try {
+                    const response = await fetch(`http://localhost:8081/department/${departmentId}`, {
+                        method: 'DELETE',
+                        headers: { 'x-access-token': token }
+                    });
+                    if (!response.ok) {
+                        throw new Error("Failed to delete department");
+                    }
+                    alert("Department deleted successfully!");
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Failed to delete department");
+                }
+            }
+        });
+
+        document.getElementById('addEmployeeBtn').addEventListener('click', async () => {
+            const selectedEmployeeId = document.getElementById('availableEmployees').value;
+            if (!selectedEmployeeId) {
+                alert("Please select an employee to add");
+                return;
+            }
+            try {
+                const response = await fetch(`http://localhost:8081/employee/${selectedEmployeeId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    },
+                    body: JSON.stringify({ DepartmentID: departmentId })
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to add employee to department");
+                }
+                alert("Employee added to department successfully!");
+                loadAvailableEmployees(); // Reload available employees
+            } catch (error) {
+                console.error("Error adding employee:", error);
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+
+        // Welcome message
+        const userFullName = sessionStorage.getItem('userFullName');
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userFullName || 'User'}!`;
+
+        loadDepartmentData(); // Load department data on page load
+    </script>
+</body>
+</html>
